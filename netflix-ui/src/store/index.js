@@ -32,9 +32,36 @@ let moviesGenre=[]
 }
 )
 }
-
  return moviesArray
 })
+
+ export const fetchMoviesByGenre = createAsyncThunk("netflix,byGenres", async({genre,type} , thunkApi)=>{
+    const {netflix:{genres}} =thunkApi.getState()
+    const moviesArray=[]
+    for(let i=1;moviesArray.length<60 && i<10;i++){
+    const {data:{results}} = await axios.get(`${TMBD_BASE_URL}/discover/${type}?api_key=${API_KEY}&with_genres=${genre}`)
+    results.forEach((movie)=>{
+    // distinguer les genres 
+    let moviesGenre=[]
+     movie.genre_ids.forEach((genre_id)=>{
+         const name = genres.find((genre)=> genre_id===genre.id)
+         if(name) moviesGenre.push(name.name)
+     })
+     
+    // creer un tableau des movies trending 
+        if(movie.backdrop_path){
+            moviesArray.push({
+                id:movie.id,
+                image:movie.backdrop_path,
+                genre:moviesGenre.slice(0, 3),
+                name: movie?.original_name ? movie.original_name :movie.original_title,
+            })
+        } 
+    }
+    )
+    }
+     return moviesArray
+ })
 const NetflixSlice=createSlice({
     name:"Netflix",
     initialState: {
@@ -56,7 +83,11 @@ const NetflixSlice=createSlice({
         builder.addCase(fetchMovies.fulfilled, (state, action) => {
             state.movies=action.payload
           });
-    }
+    
+    builder.addCase(fetchMoviesByGenre.fulfilled , (state,action)=>{
+   state.movies=action.payload
+    })
+}
 })
 
 export const {} =NetflixSlice.actions

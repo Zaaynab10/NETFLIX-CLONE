@@ -10,6 +10,9 @@ import {useDispatch , useSelector} from "react-redux"
 import { getGenres } from "../store";
 import { fetchMovies } from "../store";
 import Slider from "../components/Slider"
+import { firebaseAuth } from "../utils/firebase-config";
+import { onAuthStateChanged } from "firebase/auth";
+
 export default function Netflix() {
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate=useNavigate()
@@ -18,16 +21,27 @@ export default function Netflix() {
     return () => (window.onscroll = null);
   };
 
-  const genresLoaded = useSelector((state)=>state.netflix.genresLoaded)
+  const genres= useSelector((state)=>state.netflix.genres)
   const movies= useSelector((state)=>state.netflix.movies)
   const dispatch=useDispatch()
+
+  useEffect(()=>{
+    onAuthStateChanged(firebaseAuth, (user) => {
+      if(!user) {navigate('/login')
+      }
+    })
+  },[])
+
   useEffect(()=>{
    dispatch(getGenres())
   },[])
 
+
   useEffect(()=>{
-  if(genresLoaded) {dispatch(fetchMovies({type:"all"}))}
+dispatch(fetchMovies({type:"all"}))
+ 
 })
+
 
     return (
       <Container>
@@ -47,10 +61,12 @@ export default function Netflix() {
 
  </div>
   </div>
+  
   <Slider movies={movies} />
       </Container>
     );
   }
+  
   
   const Container = styled.div`
   background-color: black; /* Couleur de fond noire */
